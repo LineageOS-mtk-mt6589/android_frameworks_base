@@ -19,12 +19,14 @@ package android.location;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import android.util.Log;
 
 /**
  * This class represents the current state of the GPS engine.
  * This class is used in conjunction with the {@link Listener} interface.
  */
 public final class GpsStatus {
+	  private static final String TAG = "GpsStatus";
     private static final int NUM_SATELLITES = 255;
 
     /* These package private values are modified by the LocationManager class */
@@ -138,6 +140,38 @@ public final class GpsStatus {
      * data from the Location Manager Service to its cached GpsStatus instance.
      * Is synchronized to ensure that GPS status updates are atomic.
      */
+     /* MTK code for support the Multi-Satellite System(The GPS/GLNOSS/Beidou/Galileo) MTK81084 chen.wang
+     */
+   	synchronized void setStatus(int svCount, int[] prns, float[] snrs, 
+            float[] elevations, float[] azimuths, int [] ephemerisMask, 
+            int [] almanacMask, int [] usedInFixMask){
+	for (int i = 0; i < mSatellites.length; i++){
+	    mSatellites[i].mValid = false;
+	}
+	for (int i = 0; i < svCount; i++){
+            int prn = prns[i] - 1;
+	    int baseNum = prn / 32;
+	    int posInInt = prn - baseNum * 32;
+	    int prnShift = (1 << posInInt);
+  	    if(posInInt < 0 || posInInt >= 32 || baseNum < 0 || baseNum >= 8){
+		Log.e(TAG,"an error has been happened posInInt: "+posInInt +"baseNum:"+baseNum);
+	    }
+	    if (prn >= 0 && prn < mSatellites.length){
+		GpsSatellite satellite = mSatellites[prn];
+	        satellite.mValid = true;
+		satellite.mSnr = snrs[i];
+		satellite.mElevation = elevations[i];
+		satellite.mAzimuth = azimuths[i];
+		satellite.mHasEphemeris = ((ephemerisMask[baseNum] & prnShift) != 0);
+		satellite.mHasAlmanac = ((almanacMask[baseNum] & prnShift) != 0);
+		satellite.mUsedInFix = ((usedInFixMask[baseNum] & prnShift) != 0);
+	    }
+	}
+    }
+
+    /* This Google default code was not used due to it can not support the Multi-Satellite System(The GPS/GLNOSS/Beidou/Galileo)
+    for the new system Prn range can be [1-255], the Google default can only support 32 satellite*/
+    /* The Google default code:
     synchronized void setStatus(int svCount, int[] prns, float[] snrs,
             float[] elevations, float[] azimuths, int ephemerisMask,
             int almanacMask, int usedInFixMask) {
@@ -162,7 +196,7 @@ public final class GpsStatus {
                 satellite.mUsedInFix = ((usedInFixMask & prnShift) != 0);
             }
         }
-    }
+    }*/
 
     /**
      * Used by {@link LocationManager#getGpsStatus} to copy LocationManager's

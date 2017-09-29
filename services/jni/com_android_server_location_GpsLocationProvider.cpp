@@ -38,6 +38,7 @@ static jmethodID method_reportStatus;
 static jmethodID method_reportSvStatus;
 static jmethodID method_reportAGpsStatus;
 static jmethodID method_reportNmea;
+static jmethodID method_reportTestResult;
 static jmethodID method_setEngineCapabilities;
 static jmethodID method_xtraDownloadRequest;
 static jmethodID method_reportNiNotification;
@@ -86,6 +87,18 @@ static void location_callback(GpsLocation* location)
             (jfloat)location->accuracy, (jlong)location->timestamp);
     checkAndClearExceptionFromCallback(env, __FUNCTION__);
 }
+
+static void test_callback(GpsTestResult* test_result)
+{
+    JNIEnv* env = AndroidRuntime::getJNIEnv();
+	env->CallVoidMethod(mCallbacksObj, method_reportTestResult, test_result->error_code,
+            test_result->theta, test_result->phi, test_result->success_num,
+            test_result->completed_num, test_result->avg_cno, test_result->dev_cno, 
+            test_result->avg_speed);
+    checkAndClearExceptionFromCallback(env, __FUNCTION__);
+    
+}
+
 
 static void status_callback(GpsStatus* status)
 {
@@ -149,6 +162,7 @@ GpsCallbacks sGpsCallbacks = {
     status_callback,
     sv_status_callback,
     nmea_callback,
+    test_callback,
     set_capabilities_callback,
     acquire_wakelock_callback,
     release_wakelock_callback,
@@ -345,6 +359,7 @@ static void android_location_GpsLocationProvider_class_init_native(JNIEnv* env, 
     method_reportSvStatus = env->GetMethodID(clazz, "reportSvStatus", "()V");
     method_reportAGpsStatus = env->GetMethodID(clazz, "reportAGpsStatus", "(III)V");
     method_reportNmea = env->GetMethodID(clazz, "reportNmea", "(J)V");
+    method_reportTestResult = env->GetMethodID(clazz, "reportTestResult", "(IIIIIIII)V");
     method_setEngineCapabilities = env->GetMethodID(clazz, "setEngineCapabilities", "(I)V");
     method_xtraDownloadRequest = env->GetMethodID(clazz, "xtraDownloadRequest", "()V");
     method_reportNiNotification = env->GetMethodID(clazz, "reportNiNotification",
@@ -477,9 +492,25 @@ static jint android_location_GpsLocationProvider_read_sv_status(JNIEnv* env, job
         elev[i] = sGpsSvStatus.sv_list[i].elevation;
         azim[i] = sGpsSvStatus.sv_list[i].azimuth;
     }
-    mask[0] = sGpsSvStatus.ephemeris_mask;
-    mask[1] = sGpsSvStatus.almanac_mask;
-    mask[2] = sGpsSvStatus.used_in_fix_mask;
+	// This code discarded due to the multi-satellite support
+	//	mask[0] = sGpsSvStatus.ephemeris_mask;//int [] 0-Max bit-->svid //JNI support ArrayArray?
+	//	mask[1] = sGpsSvStatus.almanac_mask;
+	//	mask[2] = sGpsSvStatus.used_in_fix_mask;
+
+	//copy all the data to the maskArray
+	// the mask array has been divided [0-7]ephemeris[8-15]almanac[16-23]used_in_fix
+		for (int i = 0, k = 0; k < 3; i = (i+1) % 8) {
+			if (k == 0) {
+				mask[i + k * 8] = sGpsSvStatus.ephemeris_mask[i];
+			} else if (k == 1) {
+				mask[i + k * 8] = sGpsSvStatus.almanac_mask[i];
+			} else if (k == 2) {
+				mask[i + k * 8] = sGpsSvStatus.used_in_fix_mask[i];
+			}
+			if (i == 7) {
+				k++;
+			}
+		}
 
     env->ReleaseIntArrayElements(prnArray, prns, 0);
     env->ReleaseFloatArrayElements(snrArray, snrs, 0);

@@ -26,8 +26,14 @@ oneway interface IGpsStatusListener
     void onGpsStarted();
     void onGpsStopped();
     void onFirstFix(int ttff);
+    /* This Google default code was not used due to it can not support the Multi-Satellite System 
     void onSvStatusChanged(int svCount, in int[] prns, in float[] snrs, 
             in float[] elevations, in float[] azimuths, 
             int ephemerisMask, int almanacMask, int usedInFixMask);
+    */
+    /*MTK interface for support the Multi-Satellite System MTK81084 chen.wang */
+    void onSvStatusChanged(int svCount, in int[] prns, in float[] snrs, 
+            in float[] elevations, in float[] azimuths, 
+            in int [] ephemerisMask, in int [] almanacMask, in int [] usedInFixMask, in int timeToFirstFix);
     void onNmeaReceived(long timestamp, String nmea);
 }

@@ -1420,13 +1420,35 @@ public class LocationManager {
             }
         }
 
-        @Override
+        /* This Google default code was not used due to it can not support the Multi-Satellite System(The GPS/GLNOSS/Beidou/Galileo)
+    for the new system Prn range can be [1-255], the Google default can only support 32 satellite*/
+    		/* The Google default code:
         public void onSvStatusChanged(int svCount, int[] prns, float[] snrs,
                 float[] elevations, float[] azimuths, int ephemerisMask,
                 int almanacMask, int usedInFixMask) {
             if (mListener != null) {
                 mGpsStatus.setStatus(svCount, prns, snrs, elevations, azimuths,
                         ephemerisMask, almanacMask, usedInFixMask);
+                Message msg = Message.obtain();
+                msg.what = GpsStatus.GPS_EVENT_SATELLITE_STATUS;
+                // remove any SV status messages already in the queue
+                mGpsHandler.removeMessages(GpsStatus.GPS_EVENT_SATELLITE_STATUS);
+                mGpsHandler.sendMessage(msg);
+            }
+        }*/
+     /* 
+      * MTK code for support the Multi-Satellite System(The GPS/GLNOSS/Beidou/Galileo) MTK81084 chen.wang
+      * add timeToFirstFix for app if the GPS is already fixed
+      */
+      public void onSvStatusChanged(int svCount, int[] prns, float[] snrs, 
+      		float[] elevations, float[] azimuths, 
+      		int [] ephemerisMask, int [] almanacMask, int [] usedInFixMask,
+      		int timeToFirstFix) {
+	    if (mListener != null) {
+		mGpsStatus.setStatus(svCount, prns, snrs, elevations, azimuths, 
+			ephemerisMask, almanacMask, usedInFixMask);
+        //set the TTFF for the app if the GPS is already fixed
+        mGpsStatus.setTimeToFirstFix(timeToFirstFix);
 
                 Message msg = Message.obtain();
                 msg.what = GpsStatus.GPS_EVENT_SATELLITE_STATUS;
