@@ -1864,7 +1864,7 @@ public class SyncManager {
         }
 
         public SyncHandler(Looper looper) {
-            super(looper);
+//            super(looper);
         }
 
         @Override
