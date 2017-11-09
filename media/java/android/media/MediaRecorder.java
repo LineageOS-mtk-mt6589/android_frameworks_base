@@ -209,6 +209,11 @@ public class MediaRecorder
 
         /** @hide */
         public static final int FM_RX_A2DP = 10;
+
+        /**
+         * {@hide}
+         */
+        public static final int FM = 99;
         /**
          * Audio source for preemptible, low-priority software hotword detection
          * It presents the same gain and pre processing tuning as {@link #VOICE_RECOGNITION}.

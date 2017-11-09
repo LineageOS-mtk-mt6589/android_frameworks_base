@@ -257,6 +257,9 @@ public class AudioManager {
     public static final int STREAM_TTS = AudioSystem.STREAM_TTS;
     /** @hide The audio stream for incall music delivery */
     public static final int STREAM_INCALL_MUSIC = AudioSystem.STREAM_INCALL_MUSIC;
+	/** M: MTK added for FM 
+       * @hide The audio stream for FM */
+    public static final int STREAM_FM = AudioSystem.STREAM_FM;
     /** Number of audio streams */
     /**
      * @deprecated Use AudioSystem.getNumStreamTypes() instead
@@ -276,7 +279,8 @@ public class AudioManager {
         7,  // STREAM_SYSTEM_ENFORCED
         11, // STREAM_DTMF
         11, // STREAM_TTS
-        4   // STREAM_INCALL_MUSIC
+        4,   // STREAM_INCALL_MUSIC
+        8  // STREAM_FM
     };
 
     /**

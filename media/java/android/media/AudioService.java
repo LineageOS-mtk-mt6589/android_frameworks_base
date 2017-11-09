@@ -223,7 +223,8 @@ public class AudioService extends IAudioService.Stub {
         15, // STREAM_BLUETOOTH_SCO
         7,  // STREAM_SYSTEM_ENFORCED
         15, // STREAM_DTMF
-        15  // STREAM_TTS
+        15,  // STREAM_TTS
+        15 //STREAM_FM
     };
     /* mStreamVolumeAlias[] indicates for each stream if it uses the volume settings
      * of another stream: This avoids multiplying the volume settings for hidden
@@ -795,7 +796,8 @@ public class AudioService extends IAudioService.Stub {
                 System.MUTE_STREAMS_AFFECTED,
                 ((1 << AudioSystem.STREAM_MUSIC)|
                  (1 << AudioSystem.STREAM_RING)|
-                 (1 << AudioSystem.STREAM_SYSTEM)),
+                 (1 << AudioSystem.STREAM_SYSTEM)|
+                 (1 << AudioSystem.STREAM_FM)),
                  UserHandle.USER_CURRENT);
 
         boolean masterMute = System.getIntForUser(cr, System.VOLUME_MASTER_MUTE,
