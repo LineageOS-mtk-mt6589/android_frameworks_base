@@ -2055,6 +2055,14 @@ public final class Settings {
          */
         public static final String VOLUME_BLUETOOTH_SCO = "volume_bluetooth_sco";
 
+         /**
+         * M: FM volume. This is used internally, changing this value will not
+         * change the volume. See AudioManager.
+         * 
+         * @hide
+         */
+        public static final String VOLUME_FM = "volume_fm";
+
         /**
          * Whether to display a warning dialog when the user attempts to increase media
          * volume above a safe limit while a headset is connected. This feature is enabled
@@ -2185,9 +2193,10 @@ public final class Settings {
         /**
          * The mapping of stream type (integer) to its setting.
          */
+         /// M:Add support VOLUME_FM,VOLUME_MATV
         public static final String[] VOLUME_SETTINGS = {
             VOLUME_VOICE, VOLUME_SYSTEM, VOLUME_RING, VOLUME_MUSIC,
-            VOLUME_ALARM, VOLUME_NOTIFICATION, VOLUME_BLUETOOTH_SCO
+            VOLUME_ALARM, VOLUME_NOTIFICATION, VOLUME_BLUETOOTH_SCO, VOLUME_FM
         };
 
         /**

@@ -176,6 +176,11 @@ public class VolumePanel extends Handler implements OnSeekBarChangeListener, Vie
                 R.drawable.ic_audio_alarm,
                 R.drawable.ic_audio_alarm_mute,
                 true),
+        FMStream(AudioManager.STREAM_FM,
+                R.string.volume_icon_description_media,
+                R.drawable.ic_audio_vol,
+                R.drawable.ic_audio_vol_mute,
+                false),
         MediaStream(AudioManager.STREAM_MUSIC,
                 R.string.volume_icon_description_media,
                 R.drawable.ic_audio_vol,
@@ -223,7 +228,8 @@ public class VolumePanel extends Handler implements OnSeekBarChangeListener, Vie
         StreamResources.NotificationStream,
         StreamResources.AlarmStream,
         StreamResources.MasterStream,
-        StreamResources.RemoteStream
+        StreamResources.RemoteStream,
+        StreamResources.FMStream
     };
 
     /** Object that contains data for each slider */
@@ -796,6 +802,10 @@ public class VolumePanel extends Handler implements OnSeekBarChangeListener, Vie
             }
 
             case AudioManager.STREAM_ALARM: {
+                break;
+            }
+
+            case AudioManager.STREAM_FM: {
                 break;
             }
 

@@ -255,11 +255,11 @@ public class AudioManager {
     public static final int STREAM_DTMF = AudioSystem.STREAM_DTMF;
     /** @hide The audio stream for text to speech (TTS) */
     public static final int STREAM_TTS = AudioSystem.STREAM_TTS;
-    /** @hide The audio stream for incall music delivery */
-    public static final int STREAM_INCALL_MUSIC = AudioSystem.STREAM_INCALL_MUSIC;
 	/** M: MTK added for FM 
        * @hide The audio stream for FM */
     public static final int STREAM_FM = AudioSystem.STREAM_FM;
+    /** @hide The audio stream for incall music delivery */
+    public static final int STREAM_INCALL_MUSIC = AudioSystem.STREAM_INCALL_MUSIC;
     /** Number of audio streams */
     /**
      * @deprecated Use AudioSystem.getNumStreamTypes() instead
@@ -279,8 +279,8 @@ public class AudioManager {
         7,  // STREAM_SYSTEM_ENFORCED
         11, // STREAM_DTMF
         11, // STREAM_TTS
-        4,   // STREAM_INCALL_MUSIC
-        8  // STREAM_FM
+        8,  // STREAM_FM
+        4   // STREAM_INCALL_MUSIC
     };
 
     /**
@@ -1676,9 +1676,11 @@ public class AudioManager {
      * Note: only AudioManager.STREAM_MUSIC is supported at the moment
      */
     public void adjustLocalOrRemoteStreamVolume(int streamType, int direction) {
-        if (streamType != STREAM_MUSIC) {
+        /// M: Add to support FM volume adjust @ {
+        /*if (streamType != STREAM_MUSIC) {
             Log.w(TAG, "adjustLocalOrRemoteStreamVolume() doesn't support stream " + streamType);
-        }
+        }*/
+        /// @}
         IAudioService service = getService();
         try {
             service.adjustLocalOrRemoteStreamVolume(streamType, direction,
@@ -2786,6 +2788,55 @@ public class AudioManager {
             return null;
         }
     }
+
+    /**
+     * M : Added to check whether fm is active.
+     *
+     * @return true if any fm are active.
+     * {@hide}
+     */
+    public boolean isFmActive() {
+        String FmStatus = AudioSystem.getParameters("GetFmEnable");
+	      Log.d(TAG, "isFmActive  " + FmStatus);
+        if (FmStatus.compareTo("GetFmEnable=true") == 0) {
+	          return true;
+	      } else {
+	          return false;
+	      }
+    }
+    	/**
+      * M: Add to set audio to FMTX.
+      *
+      *  @return If success or not.
+      *  {@hide}
+      *  
+      */
+     public boolean setAudioPathToFMTx() {
+         IAudioService service = getService();
+         try {
+             return service.setAudioPathToFMTx(mICallBack);
+         } catch (RemoteException e) {
+             Log.e(TAG, "Dead object in setAudioPathToFMTx"+e);
+             return false;
+         }
+     }
+
+  	 /**
+      * M: Add to set audio outof  FMTX.
+      *
+      *  @return If success or not.
+      *  {@hide}
+      *  
+      */
+     public boolean setAudioPathOutofFMTx() {
+         IAudioService service = getService();
+         try {
+             return service.setAudioPathOutofFMTx();
+         } catch (RemoteException e) {
+             Log.e(TAG, "Dead object in setAudioPathOutofFMTx"+e);
+             return false;
+         }
+     }
 
     /**
      * Returns the estimated latency for the given stream type in milliseconds.

@@ -239,4 +239,6 @@ interface IAudioService {
 
     boolean isCameraSoundForced();
 
+    boolean setAudioPathToFMTx(IBinder cb);
+    boolean setAudioPathOutofFMTx();
 }

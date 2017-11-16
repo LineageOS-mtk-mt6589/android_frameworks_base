@@ -149,11 +149,19 @@ public abstract class KeyguardViewBase extends FrameLayout {
                         }
                         // Volume buttons should only function for music (local or remote).
                         // TODO: Actually handle MUTE.
-                        mAudioManager.adjustLocalOrRemoteStreamVolume(
-                                AudioManager.STREAM_MUSIC,
-                                keyCode == KeyEvent.KEYCODE_VOLUME_UP
+                        /// M: Handle Music and FM radio two cases @{
+                        int  direction = (keyCode == KeyEvent.KEYCODE_VOLUME_UP
                                         ? AudioManager.ADJUST_RAISE
                                         : AudioManager.ADJUST_LOWER);
+                        if (mAudioManager.isMusicActive()) {
+                            // TODO: Actually handle MUTE.
+                            mAudioManager.adjustLocalOrRemoteStreamVolume(
+                                    AudioManager.STREAM_MUSIC, direction);
+                        } else if (mAudioManager.isFmActive()) {
+                            mAudioManager.adjustLocalOrRemoteStreamVolume(
+                                    AudioManager.STREAM_FM, direction);
+                        }
+                        /// @}
                         // Don't execute default volume behavior
                         return true;
                     } else {

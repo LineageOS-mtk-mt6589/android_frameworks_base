@@ -202,6 +202,8 @@ public class AudioService extends IAudioService.Stub {
 
     // Maximum volume adjust steps allowed in a single batch call.
     private static final int MAX_BATCH_VOLUME_ADJUST_STEPS = 4;
+    ///M: Add for call AudioManager's methods
+    private AudioManager mAudioManager = null;
 
     /* Sound effect file names  */
     private static final String SOUND_EFFECTS_PATH = "/media/audio/ui/";
@@ -244,7 +246,8 @@ public class AudioService extends IAudioService.Stub {
         AudioSystem.STREAM_BLUETOOTH_SCO,   // STREAM_BLUETOOTH_SCO
         AudioSystem.STREAM_RING,            // STREAM_SYSTEM_ENFORCED
         AudioSystem.STREAM_RING,            // STREAM_DTMF
-        AudioSystem.STREAM_MUSIC            // STREAM_TTS
+        AudioSystem.STREAM_MUSIC,            // STREAM_TTS
+        AudioSystem.STREAM_FM               //STREAM_FM
     };
     private final int[] STREAM_VOLUME_ALIAS_NON_VOICE = new int[] {
         AudioSystem.STREAM_VOICE_CALL,      // STREAM_VOICE_CALL
@@ -256,7 +259,8 @@ public class AudioService extends IAudioService.Stub {
         AudioSystem.STREAM_BLUETOOTH_SCO,   // STREAM_BLUETOOTH_SCO
         AudioSystem.STREAM_MUSIC,           // STREAM_SYSTEM_ENFORCED
         AudioSystem.STREAM_MUSIC,           // STREAM_DTMF
-        AudioSystem.STREAM_MUSIC            // STREAM_TTS
+        AudioSystem.STREAM_MUSIC,            // STREAM_TTS
+        AudioSystem.STREAM_FM               //STREAM_FM
     };
     private int[] mStreamVolumeAlias;
 
@@ -275,6 +279,10 @@ public class AudioService extends IAudioService.Stub {
         AppOpsManager.OP_AUDIO_MEDIA_VOLUME,            // STREAM_SYSTEM_ENFORCED
         AppOpsManager.OP_AUDIO_MEDIA_VOLUME,            // STREAM_DTMF
         AppOpsManager.OP_AUDIO_MEDIA_VOLUME,            // STREAM_TTS
+/*        /// M: add fm & matv @{
+        AppOpsManager.OP_AUDIO_FM_VOLUME,            // STREAM_FM
+        /// @}
+*/
     };
 
     private final boolean mUseFixedVolume;
@@ -290,7 +298,8 @@ public class AudioService extends IAudioService.Stub {
             "STREAM_BLUETOOTH_SCO",
             "STREAM_SYSTEM_ENFORCED",
             "STREAM_DTMF",
-            "STREAM_TTS"
+            "STREAM_TTS",
+            "STREAM_FM"
     };
 
     private boolean mLinkNotificationWithVolume;
@@ -881,7 +890,11 @@ public class AudioService extends IAudioService.Stub {
             adjustStreamVolume(AudioSystem.STREAM_MUSIC, direction, 0, callingPackage);
         } else if (mMediaFocusControl.checkUpdateRemoteStateIfActive(AudioSystem.STREAM_MUSIC)) {
             mMediaFocusControl.adjustRemoteVolume(AudioSystem.STREAM_MUSIC, direction, 0);
+        /// M: Add to support FM volume adjust @ {
+        } else if (isFmOn()) {
+            adjustStreamVolume(AudioSystem.STREAM_FM, direction, 0, callingPackage);
         }
+        /// @}
     }
 
     /** @see AudioManager#adjustVolume(int, int) */
@@ -2794,6 +2807,12 @@ public class AudioService extends IAudioService.Stub {
                         if (DEBUG_VOL)
                             Log.v(TAG, "getActiveStreamType: Forcing STREAM_REMOTE_MUSIC");
                         return STREAM_REMOTE_MUSIC;
+		/// M: Add for FM volume adjust @ {
+                } else if (isFmOn()) {
+                    if (DEBUG_VOL) 
+			Log.v(TAG, "getActiveStreamType: Forcing STREAM_FM...");
+                    return AudioSystem.STREAM_FM;
+                /// @}
                     } else {
                         if (mVolumeKeysControlRingStream) {
                             if (DEBUG_VOL)
@@ -2809,6 +2828,12 @@ public class AudioService extends IAudioService.Stub {
                 if (DEBUG_VOL)
                     Log.v(TAG, "getActiveStreamType: Forcing STREAM_MUSIC stream active");
                 return AudioSystem.STREAM_MUSIC;
+            /// M: Add for FM volume adjust @ {
+            } else if (isFmOn()) {
+                if (DEBUG_VOL) 
+			Log.v(TAG, "getActiveStreamType: Forcing STREAM_FM...");
+                return AudioSystem.STREAM_FM;
+           /// @}
             } else {
                 if (DEBUG_VOL) Log.v(TAG, "getActiveStreamType: Returning suggested type "
                         + suggestedStreamType);
@@ -2840,10 +2865,26 @@ public class AudioService extends IAudioService.Stub {
                         if (DEBUG_VOL)
                             Log.v(TAG, "getActiveStreamType: Forcing STREAM_REMOTE_MUSIC");
                         return STREAM_REMOTE_MUSIC;
+		/// M: Add for FM volume adjust @ {
+                } else if (isFmOn()) {
+                    if (DEBUG_VOL) 
+			Log.v(TAG, "getActiveStreamType: Forcing STREAM_FM...");
+                    return AudioSystem.STREAM_FM;
+                /// @}
                 } else {
                     if (DEBUG_VOL) Log.v(TAG, "getActiveStreamType: using STREAM_MUSIC as default");
                     return AudioSystem.STREAM_MUSIC;
                 }
+            /// M: Add for FM volume adjust @ {
+            } else if (AudioSystem.isStreamActive(AudioSystem.STREAM_MUSIC, 0)) {
+                if (DEBUG_VOL)
+                    Log.v(TAG, "getActiveStreamType: Forcing STREAM_MUSIC stream active");
+                return AudioSystem.STREAM_MUSIC;
+            /// M: Add for FM volume adjust @ {
+            } else if (isFmOn()) {
+                if (DEBUG_VOL) Log.v(TAG, "getActiveStreamType: Forcing STREAM_FM...");
+                return AudioSystem.STREAM_FM;
+           /// @}
             } else {
                 if (DEBUG_VOL) Log.v(TAG, "getActiveStreamType: Returning suggested type "
                         + suggestedStreamType);
@@ -4992,6 +5033,101 @@ public class AudioService extends IAudioService.Stub {
         int status = AudioSystem.setLowRamDevice(ActivityManager.isLowRamDeviceStatic());
         if (status != 0) {
             Log.w(TAG, "AudioFlinger informed of device's low RAM attribute; status " + status);
+        }
+    }
+
+ public boolean isFmOn() {
+	  String FmStatus = AudioSystem.getParameters("GetFmEnable");
+	  Log.d(TAG, "isFmOn " + FmStatus);
+
+        if (FmStatus.compareTo("GetFmEnable=true") == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+     /**
+     * M: Constant about  FM Tx Path.
+     */
+    private static final String GETTXPATHENABLESTATE = "GetFmTxEnable";
+    private static final String TXPATHENABLESTATE = "GetFmTxEnable=true";
+    private static final String TXPATHDISABLESTATE = "GetFmTxEnable=false";
+    private static final String SETTXPATHENABLE = "SetFmTxEnable=1";
+    private static final String SETTXPATHDISENABLE = "SetFmTxEnable=0";
+
+	 /**
+	* M: Set AudioPath to FM Tx.
+	*/
+    public boolean setAudioPathToFMTx(IBinder cb) {
+        AudioPathToFMTxDeathHandler hdl = new AudioPathToFMTxDeathHandler(cb);
+        String state  = null;
+        state = mAudioManager.getParameters(GETTXPATHENABLESTATE);
+        
+        if(state.equalsIgnoreCase(TXPATHENABLESTATE)){
+        	Log.d(TAG, "audio path already set to FM Tx, audio state =\" " + state + "\"");
+        	//return true;
+        } else {
+        	mAudioManager.setParameters(SETTXPATHENABLE);
+        	state = mAudioManager.getParameters(GETTXPATHENABLESTATE);
+        	if(state.equalsIgnoreCase(TXPATHENABLESTATE)) {
+        		Log.d(TAG, "set audio path to FM Tx succeed, audio state =\" " + state + "\"");
+        		//return true;
+        	} else {
+        		Log.e(TAG, "set audio path to FM Tx failed, audio state = \"" + state + "\"");
+        		return false; 
+        	}
+        }
+        
+        try {
+        	cb.linkToDeath(hdl, 0);
+        } catch (RemoteException e) {
+        	// client has already died!
+        	Log.w(TAG, "setAudioPathToFMTx could not link to " + cb + " binder death.");
+        	return false;
+        }
+        
+        return true;
+    }
+	 
+   /**
+	* M: Set AudioPath out of  FM Tx.
+	*/
+    public boolean setAudioPathOutofFMTx() {
+        String state  = null;
+        boolean bRet = false;
+        
+        state = mAudioManager.getParameters(GETTXPATHENABLESTATE);
+        if(state.equalsIgnoreCase(TXPATHENABLESTATE)) {
+        	mAudioManager.setParameters(SETTXPATHDISENABLE);
+        	state = mAudioManager.getParameters(GETTXPATHENABLESTATE);
+        	if(state.equalsIgnoreCase(TXPATHDISABLESTATE)) {
+        		Log.d(TAG, "set audio path out of FM Tx succeed, audio state =\" " + state + "\"");
+        		bRet = true;
+        	} else {
+        		Log.e(TAG, "set audio path out of FM Tx failed, audio state = \"" + state + "\"");
+        	}
+        }
+        
+        return bRet;
+    }
+   /**
+	* M: AudioPathToFMTxDeathHandler.
+	*/
+    private class AudioPathToFMTxDeathHandler implements IBinder.DeathRecipient {
+        private IBinder mCb; // To be notified of client's death
+
+        AudioPathToFMTxDeathHandler(IBinder cb) {
+            mCb = cb;
+        }
+
+        public void binderDied() {
+            Log.w(TAG, "AudioPathToFMTxDeathHandler::binderDied");
+            setAudioPathOutofFMTx();
+        }
+
+        public IBinder getBinder() {
+            return mCb;
         }
     }
 }
