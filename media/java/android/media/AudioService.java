@@ -279,10 +279,6 @@ public class AudioService extends IAudioService.Stub {
         AppOpsManager.OP_AUDIO_MEDIA_VOLUME,            // STREAM_SYSTEM_ENFORCED
         AppOpsManager.OP_AUDIO_MEDIA_VOLUME,            // STREAM_DTMF
         AppOpsManager.OP_AUDIO_MEDIA_VOLUME,            // STREAM_TTS
-/*        /// M: add fm & matv @{
-        AppOpsManager.OP_AUDIO_FM_VOLUME,            // STREAM_FM
-        /// @}
-*/
     };
 
     private final boolean mUseFixedVolume;
@@ -890,11 +886,7 @@ public class AudioService extends IAudioService.Stub {
             adjustStreamVolume(AudioSystem.STREAM_MUSIC, direction, 0, callingPackage);
         } else if (mMediaFocusControl.checkUpdateRemoteStateIfActive(AudioSystem.STREAM_MUSIC)) {
             mMediaFocusControl.adjustRemoteVolume(AudioSystem.STREAM_MUSIC, direction, 0);
-        /// M: Add to support FM volume adjust @ {
-        } else if (isFmOn()) {
-            adjustStreamVolume(AudioSystem.STREAM_FM, direction, 0, callingPackage);
         }
-        /// @}
     }
 
     /** @see AudioManager#adjustVolume(int, int) */
@@ -2807,12 +2799,6 @@ public class AudioService extends IAudioService.Stub {
                         if (DEBUG_VOL)
                             Log.v(TAG, "getActiveStreamType: Forcing STREAM_REMOTE_MUSIC");
                         return STREAM_REMOTE_MUSIC;
-		/// M: Add for FM volume adjust @ {
-                } else if (isFmOn()) {
-                    if (DEBUG_VOL) 
-			Log.v(TAG, "getActiveStreamType: Forcing STREAM_FM...");
-                    return AudioSystem.STREAM_FM;
-                /// @}
                     } else {
                         if (mVolumeKeysControlRingStream) {
                             if (DEBUG_VOL)
@@ -2828,12 +2814,6 @@ public class AudioService extends IAudioService.Stub {
                 if (DEBUG_VOL)
                     Log.v(TAG, "getActiveStreamType: Forcing STREAM_MUSIC stream active");
                 return AudioSystem.STREAM_MUSIC;
-            /// M: Add for FM volume adjust @ {
-            } else if (isFmOn()) {
-                if (DEBUG_VOL) 
-			Log.v(TAG, "getActiveStreamType: Forcing STREAM_FM...");
-                return AudioSystem.STREAM_FM;
-           /// @}
             } else {
                 if (DEBUG_VOL) Log.v(TAG, "getActiveStreamType: Returning suggested type "
                         + suggestedStreamType);
@@ -2865,26 +2845,10 @@ public class AudioService extends IAudioService.Stub {
                         if (DEBUG_VOL)
                             Log.v(TAG, "getActiveStreamType: Forcing STREAM_REMOTE_MUSIC");
                         return STREAM_REMOTE_MUSIC;
-		/// M: Add for FM volume adjust @ {
-                } else if (isFmOn()) {
-                    if (DEBUG_VOL) 
-			Log.v(TAG, "getActiveStreamType: Forcing STREAM_FM...");
-                    return AudioSystem.STREAM_FM;
-                /// @}
                 } else {
                     if (DEBUG_VOL) Log.v(TAG, "getActiveStreamType: using STREAM_MUSIC as default");
                     return AudioSystem.STREAM_MUSIC;
                 }
-            /// M: Add for FM volume adjust @ {
-            } else if (AudioSystem.isStreamActive(AudioSystem.STREAM_MUSIC, 0)) {
-                if (DEBUG_VOL)
-                    Log.v(TAG, "getActiveStreamType: Forcing STREAM_MUSIC stream active");
-                return AudioSystem.STREAM_MUSIC;
-            /// M: Add for FM volume adjust @ {
-            } else if (isFmOn()) {
-                if (DEBUG_VOL) Log.v(TAG, "getActiveStreamType: Forcing STREAM_FM...");
-                return AudioSystem.STREAM_FM;
-           /// @}
             } else {
                 if (DEBUG_VOL) Log.v(TAG, "getActiveStreamType: Returning suggested type "
                         + suggestedStreamType);

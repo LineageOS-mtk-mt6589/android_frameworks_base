@@ -2193,10 +2193,9 @@ public final class Settings {
         /**
          * The mapping of stream type (integer) to its setting.
          */
-         /// M:Add support VOLUME_FM,VOLUME_MATV
         public static final String[] VOLUME_SETTINGS = {
             VOLUME_VOICE, VOLUME_SYSTEM, VOLUME_RING, VOLUME_MUSIC,
-            VOLUME_ALARM, VOLUME_NOTIFICATION, VOLUME_BLUETOOTH_SCO, VOLUME_FM
+            VOLUME_ALARM, VOLUME_NOTIFICATION, VOLUME_BLUETOOTH_SCO
         };
 
         /**

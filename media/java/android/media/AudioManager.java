@@ -1676,11 +1676,9 @@ public class AudioManager {
      * Note: only AudioManager.STREAM_MUSIC is supported at the moment
      */
     public void adjustLocalOrRemoteStreamVolume(int streamType, int direction) {
-        /// M: Add to support FM volume adjust @ {
-        /*if (streamType != STREAM_MUSIC) {
+        if (streamType != STREAM_MUSIC) {
             Log.w(TAG, "adjustLocalOrRemoteStreamVolume() doesn't support stream " + streamType);
-        }*/
-        /// @}
+        }
         IAudioService service = getService();
         try {
             service.adjustLocalOrRemoteStreamVolume(streamType, direction,

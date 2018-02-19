@@ -2018,7 +2018,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                      (1 << AudioManager.STREAM_NOTIFICATION) |
                      (1 << AudioManager.STREAM_SYSTEM) |
                      /// M: { @
-                     (1 << AudioManager.STREAM_FM))));
+                     (1 << AudioManager.STREAM_FM)));
                      ///  @}
         } finally {
             if (stmt != null) stmt.close();
